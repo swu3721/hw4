@@ -1,5 +1,4 @@
 hw4_tests/
-.vscode/
 bst-test
 equal-paths-test
 *.o
