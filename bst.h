@@ -249,6 +249,7 @@ protected:
     // Add helper functions here
     int height(Node<Key, Value>* r) const;
     bool subtreeBalanced(Node<Key, Value>* node) const;
+    void clearHelper(Node<Key, Value>* node);
 
 protected:
     Node<Key, Value>* root_;
@@ -515,6 +516,13 @@ void BinarySearchTree<Key, Value>::remove(const Key& key)
         return;
     }
 
+    if (removeNode->getLeft() != nullptr && removeNode->getRight() != nullptr) {
+        Node<Key, Value>* predNode = predecessor(removeNode); //Find predecessor
+        nodeSwap(predNode, removeNode); //Swap predecessor
+
+    }
+    
+
     //If no children
     if (removeNode->getLeft() == nullptr && removeNode->getRight() == nullptr) {
         if (removeNode == root_) {  //If its the root, delete
@@ -559,58 +567,7 @@ void BinarySearchTree<Key, Value>::remove(const Key& key)
             child->setParent(parent);
         }
         delete removeNode;
-    } else { //There are 2 children
-        Node<Key, Value>* predNode = predecessor(removeNode); //Find predecessor
-        nodeSwap(predNode, removeNode); //Swap predecessor
-
-        // Store the parent of predNode before removing it
-        Node<Key, Value>* parentOfPred = removeNode->getParent();
-
-        // Remove predNode (now in the original position of removeNode)
-        if (removeNode->getLeft() == nullptr && removeNode->getRight() == nullptr) {
-            if (removeNode == root_) {  //If its the root, delete
-                delete removeNode;
-                root_ = nullptr;
-            } else { //Remove node and update parent
-                if (parentOfPred->getLeft() == removeNode) { //Check if left child or right child
-                    parentOfPred->setLeft(nullptr);
-                } else {
-                    parentOfPred->setRight(nullptr);
-                }
-                delete removeNode;
-            }
-        } else if (removeNode->getRight() == nullptr) { //If there is left child at the remove node
-            Node<Key, Value>* child = removeNode->getLeft(); //the child node
-            if (removeNode == root_) { //If remove is root, make child root and update
-                root_ = child;
-                child->setParent(nullptr);
-            } else {
-                if (parentOfPred->getLeft() == removeNode) { //If removeNode is left, make the child of remove child of parent
-                    parentOfPred->setLeft(child);
-                } else {
-                    parentOfPred->setRight(child);
-                }
-                child->setParent(parentOfPred);
-            }
-            delete removeNode;
-        } else if (removeNode->getLeft() == nullptr) { //If there is left child at the remove node
-            Node<Key, Value>* child = removeNode->getRight(); //the child node
-            if (removeNode == root_) { //If remove is root, make child root and update
-                root_ = child;
-                child->setParent(nullptr);
-            } else {
-                if (parentOfPred->getLeft() == removeNode) { //If removeNode is left, make the child of remove child of parent
-                    parentOfPred->setLeft(child);
-                } else {
-                    parentOfPred->setRight(child);
-                }
-                child->setParent(parentOfPred);
-            }
-            delete removeNode;
-        }
-
     }
-
 
 }
 
@@ -648,34 +605,19 @@ BinarySearchTree<Key, Value>::predecessor(Node<Key, Value>* current)
 template<typename Key, typename Value>
 void BinarySearchTree<Key, Value>::clear()
 {
-    Node<Key, Value>* current = root_; 
-    Node<Key, Value>* prevNode = nullptr;
-    Node<Key, Value>* parent = nullptr;
-
-    while (current != nullptr) {
-        if (prevNode == current->getRight() || prevNode == current->getLeft()) {
-            // If the right child or left child has been visited, delete the current node and move up
-            parent = current->getParent();
-            delete current;
-            prevNode = current;
-            current = parent;
-        } else if (current->getRight() != nullptr) {
-            // Move to the right child if it exists
-            current = current->getRight();
-        } else if (current->getLeft() != nullptr) {
-            // Move to the left child if it exists
-            current = current->getLeft();
-        } else {
-            // If current node is a leaf node, delete it and move up
-            parent = current->getParent();
-            delete current;
-            prevNode = current;
-            current = parent;
-        }
-    }
-
-    // Reset the root pointer to indicate an empty tree
+    clearHelper(root_);
     root_ = nullptr;
+}
+
+template<class Key, class Value>
+void BinarySearchTree<Key, Value>::clearHelper(Node<Key, Value>* node)
+{
+    if (node == nullptr) {
+        return;
+    }
+    clearHelper(node->getLeft());
+    clearHelper(node->getRight());
+    delete node;
 }
 
 
